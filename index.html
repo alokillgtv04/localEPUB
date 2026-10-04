@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>📚 EPUB List Editor 1.1</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  background:#0a0a0f;color:#e0e0e8;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  font-size:14px;line-height:1.5;
+  display:flex;flex-direction:column;height:100vh;overflow:hidden;
+}
+button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+input,textarea,select{font-family:inherit;font-size:inherit;}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-track{background:#0f0f16;}
+::-webkit-scrollbar-thumb{background:#2a2a3a;border-radius:4px;}
+::-webkit-scrollbar-thumb:hover{background:#3a3a4a;}
+header{
+  flex-shrink:0;display:flex;align-items:center;gap:12px;
+  padding:10px 16px;
+  background:linear-gradient(180deg,#14141c,#0f0f16);
+  border-bottom:1px solid #2a2a3a;
+}
+header h1{font-size:16px;font-weight:800;color:#d9b8ff;letter-spacing:.5px;margin-right:8px;}
+header .spacer{flex:1;}
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 14px;border-radius:8px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  color:#e0e0e8;font-size:13px;font-weight:600;
+  transition:background .15s,transform .1s,border-color .15s;
+  white-space:nowrap;
+}
+.btn:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);}
+.btn:active{transform:translateY(1px);}
+.btn.primary{
+  background:linear-gradient(135deg,#a855f7,#4dabf7);
+  border:none;color:#fff;
+  box-shadow:0 3px 12px rgba(168,85,247,.35);
+}
+.btn.primary:hover{box-shadow:0 5px 18px rgba(168,85,247,.5);}
+.btn.danger{
+  background:rgba(255,107,107,.12);
+  border-color:rgba(255,107,107,.35);color:#ff8787;
+}
+.btn.danger:hover{background:rgba(255,107,107,.25);}
+.btn.ghost{padding:5px 10px;font-size:12px;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.app{flex:1;display:flex;min-height:0;}
+.sidebar{
+  flex:0 0 240px;display:flex;flex-direction:column;
+  background:#0f0f16;border-right:1px solid #2a2a3a;
+  min-height:0;
+}
+.sidebar-head{
+  flex-shrink:0;padding:10px 12px;
+  border-bottom:1px solid #2a2a3a;
+  display:flex;gap:6px;align-items:center;
+}
+.sidebar-head .title{
+  flex:1;font-size:11px;font-weight:800;color:#888;
+  text-transform:uppercase;letter-spacing:1px;
+}
+#cat-list{
+  flex:1;overflow-y:auto;padding:8px;
+  display:flex;flex-direction:column;gap:4px;
+}
+.cat-item{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 10px;border-radius:8px;
+  background:rgba(255,255,255,.03);
+  border:1px solid transparent;
+  cursor:pointer;transition:all .15s;
+  color:#c8c8d0;font-size:13px;
+}
+.cat-item:hover{background:rgba(255,255,255,.07);}
+.cat-item.active{
+  background:rgba(168,85,247,.18);
+  border-color:rgba(168,85,247,.5);
+  color:#fff;font-weight:600;
+}
+.cat-item .cat-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cat-item .cat-count{
+  font-size:11px;color:#888;
+  padding:1px 7px;border-radius:10px;
+  background:rgba(255,255,255,.06);
+}
+.cat-item.active .cat-count{background:rgba(168,85,247,.4);color:#fff;}
+.cat-item .cat-move{display:none;gap:2px;}
+.cat-item:hover .cat-move,
+.cat-item.active .cat-move{display:flex;}
+.cat-item .cat-move button{
+  width:20px;height:20px;border-radius:4px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;color:#888;
+  background:rgba(255,255,255,.05);
+}
+.cat-item .cat-move button:hover{background:rgba(255,255,255,.15);color:#fff;}
+.empty-cats{padding:30px 14px;text-align:center;color:#555;font-size:12px;line-height:1.8;}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0;}
+.main-head{
+  flex-shrink:0;padding:12px 20px;
+  border-bottom:1px solid #2a2a3a;
+  background:rgba(255,255,255,.02);
+  display:flex;align-items:center;gap:10px;
+}
+.main-head h2{
+  font-size:15px;font-weight:700;color:#fff;
+  flex:1;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.main-head h2 .count{font-size:12px;font-weight:500;color:#888;margin-left:8px;}
+.main-body{flex:1;min-height:0;overflow-y:auto;padding:16px 20px;}
+.empty-books{padding:60px 20px;text-align:center;color:#555;font-size:13px;line-height:2;}
+.book-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+.book-card{
+  position:relative;display:flex;gap:12px;
+  padding:12px;border-radius:10px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.08);
+  transition:all .15s;
+}
+.book-card:hover{
+  background:rgba(255,255,255,.06);
+  border-color:rgba(168,85,247,.35);
+  transform:translateY(-1px);
+}
+.book-cover{
+  flex-shrink:0;width:70px;height:100px;
+  border-radius:6px;overflow:hidden;
+  background:#1a1a24;
+  border:1px solid rgba(255,255,255,.1);
+  display:flex;align-items:center;justify-content:center;
+}
+.book-cover img{width:100%;height:100%;object-fit:cover;display:block;}
+.book-cover .cover-placeholder{
+  font-size:32px;font-weight:800;color:#a855f7;
+  font-family:Georgia,serif;
+}
+.book-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;}
+.book-title{
+  font-size:14px;font-weight:700;color:#fff;line-height:1.3;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.book-author{font-size:12px;color:#a8d5ff;font-weight:600;}
+.book-desc{
+  font-size:11.5px;color:#888;line-height:1.4;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;margin-top:2px;
+}
+.book-format{
+  display:inline-block;font-size:10px;font-weight:700;
+  padding:2px 7px;border-radius:4px;
+  background:rgba(77,171,247,.15);
+  color:#4dabf7;text-transform:uppercase;
+  letter-spacing:.5px;margin-top:auto;align-self:flex-start;
+}
+.book-actions{position:absolute;top:8px;right:8px;display:none;gap:4px;}
+.book-card:hover .book-actions{display:flex;}
+.book-actions button{
+  width:26px;height:26px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;
+  background:rgba(0,0,0,.55);
+  backdrop-filter:blur(4px);
+  color:#ccc;
+  border:1px solid rgba(255,255,255,.15);
+}
+.book-actions button:hover{background:rgba(168,85,247,.5);color:#fff;}
+.book-actions button.del:hover{background:rgba(255,107,107,.6);}
+.book-actions button:disabled{opacity:.3;}
+.modal{
+  position:fixed;inset:0;z-index:1000;
+  background:rgba(0,0,0,.82);
+  backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center;
+  padding:16px;
+  animation:fadeIn .18s;
+}
+.modal.open{display:flex;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.modal-box{
+  background:linear-gradient(135deg,#1a1a26,#14141c);
+  border:1px solid rgba(168,85,247,.3);
+  border-radius:14px;
+  width:100%;max-width:680px;
+  max-height:92vh;display:flex;flex-direction:column;
+  box-shadow:0 20px 60px rgba(0,0,0,.75);
+  animation:slideUp .22s cubic-bezier(.22,1,.36,1);
+}
+@keyframes slideUp{from{transform:translateY(24px);opacity:0;}to{transform:none;opacity:1;}}
+.modal-head{
+  flex-shrink:0;padding:14px 20px 12px;
+  border-bottom:1px solid rgba(168,85,247,.2);
+  display:flex;align-items:center;gap:10px;
+}
+.modal-head h3{flex:1;font-size:15px;font-weight:800;color:#d9b8ff;}
+.modal-close{
+  width:30px;height:30px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.05);color:#ccc;
+  font-size:14px;transition:all .15s;
+}
+.modal-close:hover{background:rgba(255,107,107,.35);color:#fff;}
+.modal-body{flex:1;min-height:0;overflow-y:auto;padding:16px 20px 8px;}
+.modal-foot{
+  flex-shrink:0;padding:14px 20px;
+  border-top:1px solid rgba(168,85,247,.15);
+  display:flex;gap:8px;justify-content:flex-end;
+}
+.form-row{margin-bottom:14px;}
+.form-row label{
+  display:block;font-size:11.5px;font-weight:700;
+  color:#a8d5ff;text-transform:uppercase;letter-spacing:.6px;
+  margin-bottom:5px;
+}
+.form-row label .req{color:#ff8787;}
+.form-row input[type=text],
+.form-row input[type=url],
+.form-row textarea,
+.form-row select{
+  width:100%;padding:9px 12px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:8px;color:#fff;
+  outline:none;transition:border-color .15s,background .15s;
+}
+.form-row input:focus,
+.form-row textarea:focus,
+.form-row select:focus{
+  border-color:#a855f7;
+  background:rgba(168,85,247,.08);
+}
+.form-row textarea{resize:vertical;min-height:70px;font-family:inherit;}
+.form-row select{cursor:pointer;}
+.form-split{display:grid;grid-template-columns:120px 1fr;gap:14px;}
+.cover-preview{
+  width:120px;height:170px;
+  border-radius:8px;overflow:hidden;
+  background:#0a0a0f;
+  border:1px dashed rgba(255,255,255,.15);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;
+}
+.cover-preview img{width:100%;height:100%;object-fit:cover;display:block;}
+.cover-preview .cover-empty{
+  color:#444;font-size:11px;text-align:center;padding:10px;
+  font-weight:600;
+}
+.cover-preview .cover-empty .big{
+  display:block;font-size:36px;color:#2a2a3a;margin-bottom:4px;
+  font-family:Georgia,serif;
+}
+.cover-url-row{margin-top:6px;}
+.form-help{
+  display:block;font-size:11px;color:#666;margin-top:4px;
+  line-height:1.4;
+}
+.form-help .code{
+  background:rgba(255,212,59,.1);color:#ffd43b;
+  padding:1px 5px;border-radius:3px;
+  font-family:ui-monospace,monospace;font-size:10.5px;
+}
+.form-row.has-error input,
+.form-row.has-error textarea{border-color:#ff6b6b;}
+.form-error{font-size:11px;color:#ff8787;margin-top:4px;}
+#toast-container{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  z-index:9999;display:flex;flex-direction:column;
+  gap:8px;pointer-events:none;align-items:center;
+}
+.toast{
+  padding:11px 20px;border-radius:10px;
+  background:rgba(20,20,30,.96);
+  border-left:4px solid #4dabf7;
+  color:#fff;font-size:13px;font-weight:600;
+  box-shadow:0 8px 28px rgba(0,0,0,.6);
+  animation:toastIn .22s cubic-bezier(.22,1,.36,1);
+  max-width:90vw;
+}
+.toast.success{border-left-color:#4caf50;}
+.toast.error{border-left-color:#ff6b6b;}
+.toast.warn{border-left-color:#ffd43b;}
+.toast.out{opacity:0;transform:translateY(14px);transition:all .25s;}
+@keyframes toastIn{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+#import-modal .modal-box{max-width:600px;}
+.import-tabs{
+  display:flex;gap:4px;border-bottom:1px solid rgba(255,255,255,.08);
+  padding:0 20px;margin-bottom:12px;
+}
+.import-tab{
+  padding:9px 14px;font-size:13px;font-weight:600;
+  color:#888;border-bottom:2px solid transparent;
+  transition:all .15s;margin-bottom:-1px;
+}
+.import-tab.active{color:#d9b8ff;border-color:#a855f7;}
+.import-pane{display:none;padding:0 20px 16px;}
+.import-pane.active{display:block;}
+.import-pane textarea{
+  width:100%;min-height:220px;
+  padding:11px 14px;
+  background:rgba(0,0,0,.35);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:8px;
+  color:#e0e0e8;
+  font-family:ui-monospace,"Courier New",monospace;
+  font-size:12px;line-height:1.5;
+  outline:none;resize:vertical;
+}
+.import-pane textarea:focus{border-color:#a855f7;}
+.drop-zone{
+  border:2px dashed rgba(168,85,247,.35);
+  border-radius:10px;
+  padding:36px 20px;text-align:center;
+  background:rgba(168,85,247,.04);
+  transition:all .2s;cursor:pointer;
+}
+.drop-zone:hover,
+.drop-zone.drag{
+  border-color:#a855f7;
+  background:rgba(168,85,247,.1);
+}
+.drop-zone .icon{font-size:42px;margin-bottom:10px;}
+.drop-zone .title{font-size:14px;font-weight:700;color:#d9b8ff;margin-bottom:4px;}
+.drop-zone .sub{font-size:12px;color:#888;}
+.btn.loading{position:relative;color:transparent !important;pointer-events:none;}
+.btn.loading::after{
+  content:'';position:absolute;top:50%;left:50%;
+  width:14px;height:14px;margin:-7px 0 0 -7px;
+  border:2px solid rgba(255,255,255,.4);
+  border-top-color:#fff;border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+@media(max-width:700px){
+  .sidebar{flex:0 0 170px;}
+  .book-grid{grid-template-columns:1fr;}
+  .form-split{grid-template-columns:1fr;}
+  .cover-preview{width:100px;height:140px;margin:0 auto;}
+  header h1{font-size:14px;}
+  .btn{padding:6px 10px;font-size:12px;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📚 EPUB LIST EDITOR 1.2</h1>
+  <div class="spacer"></div>
+  <button class="btn" id="btn-sync">🔄 Đồng bộ</button>
+  <button class="btn" id="btn-import">📥 Nhập</button>
+  <button class="btn" id="btn-export">📤 Xuất file</button>
+  <button class="btn" id="btn-copy">📋 Copy</button>
+  <button class="btn danger" id="btn-reset">🗑 Reset</button>
+</header>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <span class="title">Thể loại</span>
+      <button class="btn ghost" id="btn-add-cat">+ Thêm</button>
+    </div>
+    <div id="cat-list"></div>
+  </aside>
+
+  <main class="main">
+    <div class="main-head">
+      <h2 id="main-title">— Chọn thể loại —</h2>
+      <button class="btn primary" id="btn-add-book" disabled>+ Thêm truyện</button>
+    </div>
+    <div class="main-body" id="main-body">
+      <div class="empty-books">👈 Chọn hoặc tạo thể loại ở cột bên trái</div>
+    </div>
+  </main>
+</div>
+
+<div class="modal" id="book-modal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="bm-title">➕ Thêm truyện</h3>
+      <button class="modal-close" data-close-modal>✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label>Tên truyện <span class="req">*</span></label>
+        <input type="text" id="bm-field-title" placeholder="VD: Bàn Long" autocomplete="off">
+      </div>
+
+      <div class="form-split">
+        <div>
+          <label style="display:block;font-size:11.5px;font-weight:700;color:#a8d5ff;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;">Ảnh bìa</label>
+          <div class="cover-preview" id="bm-cover-preview">
+            <div class="cover-empty">
+              <span class="big">📖</span>
+              Chưa có ảnh
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="form-row">
+            <label>URL Ebook <span class="req">*</span></label>
+            <input type="text" id="bm-field-url" placeholder="banlong.epub" autocomplete="off">
+            <span class="form-help">Chỉ cần tên file — auto expand từ base mặc định. Hoặc paste full URL nếu khác.</span>
+          </div>
+          <div class="form-row">
+            <label>Tác giả</label>
+            <input type="text" id="bm-field-author" placeholder="(tuỳ chọn)" autocomplete="off">
+          </div>
+          <div class="form-row">
+            <label>Định dạng</label>
+            <select id="bm-field-format">
+              <option value="epub">EPUB</option>
+              <option value="txt">TXT</option>
+              <option value="html">HTML</option>
+              <option value="docx">DOCX</option>
+              <option value="odt">ODT</option>
+              <option value="rtf">RTF</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row cover-url-row">
+        <label>URL Ảnh bìa</label>
+        <input type="text" id="bm-field-cover" placeholder="img/banlong.jpg" autocomplete="off">
+      </div>
+
+      <div class="form-row">
+        <label>Giới thiệu</label>
+        <textarea id="bm-field-desc" placeholder="Mô tả ngắn về truyện..." rows="3"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" id="bm-autofill">✨ Auto-fill từ tên</button>
+      <div style="flex:1"></div>
+      <button class="btn" data-close-modal>Huỷ</button>
+      <button class="btn primary" id="bm-save">💾 Lưu</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="import-modal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>📥 Nhập dữ liệu</h3>
+      <button class="modal-close" data-close-modal>✕</button>
+    </div>
+    <div class="import-tabs">
+      <button class="import-tab active" data-tab="paste">📋 Dán JSON</button>
+      <button class="import-tab" data-tab="file">📁 Chọn file</button>
+    </div>
+    <div class="import-pane active" data-pane="paste">
+      <textarea id="import-text" placeholder='{"version":1,"categories":[...]}'></textarea>
+    </div>
+    <div class="import-pane" data-pane="file">
+      <div class="drop-zone" id="import-dropzone">
+        <div class="icon">📁</div>
+        <div class="title">Kéo thả file vào đây</div>
+        <div class="sub">hoặc bấm để chọn (.txt / .json)</div>
+      </div>
+      <input type="file" id="import-file" accept=".txt,.json,application/json" style="display:none">
+    </div>
+    <div class="modal-foot">
+      <button class="btn" data-close-modal>Huỷ</button>
+      <button class="btn primary" id="import-confirm">📥 Nhập</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ═══════════════════════════════════════════════════════════════
+   CONFIG
+   ═══════════════════════════════════════════════════════════════ */
+var DEFAULT_RAW_BASE = 'https://raw.githubusercontent.com/alokillgtv-gif/newtest/main/book/';
+var REMOTE_DATA_URL  = 'https://vaxplugin.alokillgtv02.workers.dev/tv/novel/listepub.txt?cache=false';
+var LS_KEY           = 'epub_editor_data_v1';
+var LS_KEY_ACTIVE    = 'epub_editor_active_cat';
+
+var state = {
+  data: { version: 1, categories: [] },
+  activeCatIdx: -1,
+  editing: null,
+  lastAutoUrl: '',
+  lastAutoCover: ''
+};
+
+/* ═══ Utils ═══ */
+function $(sel, root){ return (root || document).querySelector(sel); }
+function $$(sel, root){ return Array.from((root || document).querySelectorAll(sel)); }
+
+function slugify(s){
+  return String(s || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd').replace(/Đ/g, 'd')
+    .replace(/[^a-z0-9]+/g, '');
+}
+
+function escapeHtml(s){
+  return String(s || '').replace(/[<>&"']/g, function(c){
+    return ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'})[c];
+  });
+}
+
+/* ⭐ Rút gọn URL dài → short path nếu thuộc base mặc định */
+function compactPath(v, format){
+  return normalizeShortPath(v, format);
+}
+
+/* ⭐ Expand short path → full URL */
+function expandPath(v, format){
+  v = String(v || '').trim();
+  if (!v) return '';
+  if (/^https?:\/\//.test(v)) return v;
+  if (v.indexOf('/') >= 0) return DEFAULT_RAW_BASE + v.replace(/^\/+/, '');
+  var f = String(format || 'epub').toLowerCase();
+  return DEFAULT_RAW_BASE + f + '/' + v;
+}
+
+/* ⭐ Chuẩn hoá path */
+function normalizeShortPath(v, format){
+  v = String(v || '').trim();
+  if (!v) return '';
+  if (v.indexOf(DEFAULT_RAW_BASE) === 0){
+    v = v.substring(DEFAULT_RAW_BASE.length);
+  }
+  if (/^https?:\/\//.test(v)) return v;
+  if (v.indexOf('/') < 0){
+    var f = String(format || 'epub').toLowerCase();
+    return f + '/' + v;
+  }
+  return v;
+}
+
+/* ⭐ Chuẩn hoá 1 item về schema chuẩn */
+function normalizeItem(it){
+  it = it || {};
+  var fmt = it.format || 'epub';
+  return {
+    title:       String(it.title || '').trim(),
+    url:         normalizeShortPath(it.url, fmt),
+    cover:       normalizeShortPath(it.cover, 'img'),
+    author:      String(it.author || '').trim(),
+    description: String(it.description || '').trim(),
+    format:      fmt
+  };
+}
+
+/* ⭐ So sánh 2 item: cùng URL (file) HOẶC cùng title (case-insensitive) */
+function isSameBook(a, b){
+  var ua = String(a && a.url || '').trim().toLowerCase();
+  var ub = String(b && b.url || '').trim().toLowerCase();
+  if (ua && ub && ua === ub) return true;
+  var ta = String(a && a.title || '').trim().toLowerCase();
+  var tb = String(b && b.title || '').trim().toLowerCase();
+  if (ta && tb && ta === tb) return true;
+  return false;
+}
+
+/* ⭐ GỘP dữ liệu mới vào dữ liệu cũ.
+   - Thể loại trùng tên (case-insensitive) → gộp items.
+   - Item trùng (url hoặc title) → KHÔNG thêm, chỉ bổ sung metadata thiếu.
+   - Trả về { data, added: { cats, items } } */
+function mergeData(newData, oldData){
+  var result = JSON.parse(JSON.stringify(oldData || { version: 1, categories: [] }));
+  if (!Array.isArray(result.categories)) result.categories = [];
+
+  var added = { cats: 0, items: 0 };
+  var newCats = (newData && newData.categories) || [];
+
+  newCats.forEach(function(nc){
+    var name = String(nc.name || '').trim();
+    if (!name) return;
+
+    var existing = result.categories.find(function(c){
+      return String(c.name || '').trim().toLowerCase() === name.toLowerCase();
+    });
+
+    if (!existing){
+      result.categories.push({
+        name: nc.name,
+        items: (nc.items || []).map(normalizeItem)
+      });
+      added.cats++;
+      added.items += (nc.items || []).length;
+      return;
+    }
+
+    if (!Array.isArray(existing.items)) existing.items = [];
+
+    (nc.items || []).forEach(function(rawIt){
+      var it = normalizeItem(rawIt);
+      var dupIdx = -1;
+      for (var i = 0; i < existing.items.length; i++){
+        if (isSameBook(existing.items[i], it)){ dupIdx = i; break; }
+      }
+      if (dupIdx >= 0){
+        // Bổ sung metadata nếu bản cũ thiếu
+        var old = existing.items[dupIdx];
+        if (!old.author && it.author)             existing.items[dupIdx].author = it.author;
+        if (!old.description && it.description)   existing.items[dupIdx].description = it.description;
+        if (!old.cover && it.cover)               existing.items[dupIdx].cover = it.cover;
+        if (!old.format && it.format)             existing.items[dupIdx].format = it.format;
+        return;
+      }
+      existing.items.push(it);
+      added.items++;
+    });
+  });
+
+  result.version = result.version || 1;
+  return { data: result, added: added };
+}
+
+/* ═══ Storage ═══ */
+function saveState(){
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(state.data));
+    localStorage.setItem(LS_KEY_ACTIVE, String(state.activeCatIdx));
+  } catch(e){ console.warn('[Editor] save fail:', e); }
+}
+
+function loadState(){
+  try {
+    var raw = localStorage.getItem(LS_KEY);
+    if (raw){
+      var parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.categories)){
+        state.data = parsed;
+        var active = parseInt(localStorage.getItem(LS_KEY_ACTIVE), 10);
+        if (!isNaN(active) && active >= 0 && active < state.data.categories.length){
+          state.activeCatIdx = active;
+        } else if (state.data.categories.length){
+          state.activeCatIdx = 0;
+        }
+        return true;
+      }
+    }
+  } catch(e){ console.warn('[Editor] load fail:', e); }
+  return false;
+}
+
+/* ⭐ Fetch remote data */
+async function fetchRemoteData(){
+  try {
+    var sep = REMOTE_DATA_URL.indexOf('?') >= 0 ? '&' : '?';
+    var url = REMOTE_DATA_URL + sep + '_t=' + Date.now();
+    var res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var text = await res.text();
+    var data = JSON.parse(text);
+    if (!data || !Array.isArray(data.categories)) throw new Error('Sai định dạng JSON');
+    return data;
+  } catch(e){
+    console.warn('[Editor] Remote fetch fail:', e);
+    return null;
+  }
+}
+
+/* ⭐ Đồng bộ + gộp remote vào localStorage */
+async function syncRemote(silent){
+  var remote = await fetchRemoteData();
+  if (!remote){
+    if (!silent) toast('⚠️ Không tải được dữ liệu mới', 'warn', 2500);
+    return false;
+  }
+  var m = mergeData(remote, state.data);
+  if (m.added.cats > 0 || m.added.items > 0){
+    state.data = m.data;
+    if (state.activeCatIdx < 0 && state.data.categories.length) state.activeCatIdx = 0;
+    saveState();
+    renderSidebar();
+    renderMain();
+    toast('✅ Đã gộp: +' + m.added.items + ' truyện, +' + m.added.cats + ' thể loại', 'success', 3200);
+    return true;
+  }
+  if (!silent) toast('✓ Dữ liệu đã cập nhật (không có gì mới)', 'info', 2000);
+  return false;
+}
+
+/* ═══ Toast ═══ */
+function toast(msg, type, ms){
+  type = type || 'info';
+  ms = ms || 2600;
+  var box = $('#toast-container');
+  var el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  box.appendChild(el);
+  setTimeout(function(){
+    el.classList.add('out');
+    setTimeout(function(){ el.remove(); }, 300);
+  }, ms);
+}
+
+/* ═══ Modals ═══ */
+function openModal(id){ var el = document.getElementById(id); if (el) el.classList.add('open'); }
+function closeModal(id){ var el = document.getElementById(id); if (el) el.classList.remove('open'); }
+document.addEventListener('click', function(e){
+  if (e.target.closest && e.target.closest('[data-close-modal]')){
+    var modal = e.target.closest('.modal');
+    if (modal) modal.classList.remove('open');
+  }
+  if (e.target.classList && e.target.classList.contains('modal')){
+    e.target.classList.remove('open');
+  }
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER SIDEBAR
+   ═══════════════════════════════════════════════════════════════ */
+function renderSidebar(){
+  var list = $('#cat-list');
+  list.innerHTML = '';
+  var cats = state.data.categories || [];
+
+  if (!cats.length){
+    list.innerHTML = '<div class="empty-cats">Chưa có thể loại nào.<br>Bấm <b>+ Thêm</b> để bắt đầu.</div>';
+    return;
+  }
+
+  cats.forEach(function(cat, idx){
+    var item = document.createElement('div');
+    item.className = 'cat-item' + (idx === state.activeCatIdx ? ' active' : '');
+    item.innerHTML = ''
+      + '<div class="cat-name">' + escapeHtml(cat.name || '(không tên)') + '</div>'
+      + '<div class="cat-count">' + (cat.items ? cat.items.length : 0) + '</div>'
+      + '<div class="cat-move">'
+      +   '<button data-move="up" data-idx="' + idx + '" title="Lên">▲</button>'
+      +   '<button data-move="down" data-idx="' + idx + '" title="Xuống">▼</button>'
+      + '</div>';
+
+    item.addEventListener('click', function(e){
+      if (e.target.dataset && e.target.dataset.move) return;
+      state.activeCatIdx = idx;
+      saveState();
+      renderSidebar();
+      renderMain();
+    });
+    list.appendChild(item);
+  });
+
+  $$('.cat-move button', list).forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      moveCategory(parseInt(this.dataset.idx, 10), this.dataset.move);
+    });
+  });
+}
+
+function moveCategory(idx, dir){
+  var arr = state.data.categories;
+  var to = dir === 'up' ? idx - 1 : idx + 1;
+  if (to < 0 || to >= arr.length) return;
+  var tmp = arr[idx]; arr[idx] = arr[to]; arr[to] = tmp;
+  if (state.activeCatIdx === idx) state.activeCatIdx = to;
+  else if (state.activeCatIdx === to) state.activeCatIdx = idx;
+  saveState();
+  renderSidebar();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER MAIN
+   ═══════════════════════════════════════════════════════════════ */
+function renderMain(){
+  var titleEl = $('#main-title');
+  var bodyEl = $('#main-body');
+  var addBtn = $('#btn-add-book');
+  var cat = state.data.categories[state.activeCatIdx];
+
+  if (!cat){
+    titleEl.textContent = '— Chọn thể loại —';
+    addBtn.disabled = true;
+    bodyEl.innerHTML = '<div class="empty-books">👈 Chọn hoặc tạo thể loại ở cột bên trái</div>';
+    return;
+  }
+
+  var count = (cat.items || []).length;
+  titleEl.innerHTML = escapeHtml(cat.name || '(không tên)')
+    + '<span class="count">' + count + ' truyện</span>';
+  addBtn.disabled = false;
+
+  if (!count){
+    bodyEl.innerHTML = '<div class="empty-books">📚 Chưa có truyện nào trong thể loại này.<br>Bấm <b>+ Thêm truyện</b> ở trên để thêm.</div>';
+    return;
+  }
+
+  var grid = document.createElement('div');
+  grid.className = 'book-grid';
+  cat.items.forEach(function(book, idx){
+    grid.appendChild(buildBookCard(book, idx));
+  });
+  bodyEl.innerHTML = '';
+  bodyEl.appendChild(grid);
+}
+
+function buildBookCard(book, idx){
+  var card = document.createElement('div');
+  card.className = 'book-card';
+
+  var coverUrl = expandPath(book.cover, 'img');
+  var coverHtml;
+  if (coverUrl){
+    coverHtml = '<img src="' + escapeHtml(coverUrl) + '" '
+      + 'onerror="this.style.display=\'none\';this.parentNode.innerHTML=\''
+      + '<div class=\\\'cover-placeholder\\\'>'
+      + escapeHtml((book.title || '?').charAt(0).toUpperCase()) + '</div>\'">';
+  } else {
+    coverHtml = '<div class="cover-placeholder">'
+      + escapeHtml((book.title || '?').charAt(0).toUpperCase()) + '</div>';
+  }
+
+  card.innerHTML = ''
+    + '<div class="book-cover">' + coverHtml + '</div>'
+    + '<div class="book-info">'
+    +   '<div class="book-title">' + escapeHtml(book.title || '(không tên)') + '</div>'
+    +   (book.author ? '<div class="book-author">✍️ ' + escapeHtml(book.author) + '</div>' : '')
+    +   (book.description ? '<div class="book-desc">' + escapeHtml(book.description) + '</div>' : '')
+    +   '<div class="book-format">' + escapeHtml(book.format || 'epub') + '</div>'
+    + '</div>'
+    + '<div class="book-actions">'
+    +   '<button data-act="up" title="Lên" ' + (idx === 0 ? 'disabled' : '') + '>▲</button>'
+    +   '<button data-act="down" title="Xuống" '
+    +     (idx === state.data.categories[state.activeCatIdx].items.length - 1 ? 'disabled' : '')
+    +     '>▼</button>'
+    +   '<button data-act="edit" title="Sửa">✏️</button>'
+    +   '<button data-act="del" class="del" title="Xoá">🗑</button>'
+    + '</div>';
+
+  $$('.book-actions button', card).forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      if (this.disabled) return;
+      var act = this.dataset.act;
+      if (act === 'edit') editBook(idx);
+      else if (act === 'del') deleteBook(idx);
+      else if (act === 'up') moveBook(idx, 'up');
+      else if (act === 'down') moveBook(idx, 'down');
+    });
+  });
+
+  return card;
+}
+
+function moveBook(idx, dir){
+  var arr = state.data.categories[state.activeCatIdx].items;
+  var to = dir === 'up' ? idx - 1 : idx + 1;
+  if (to < 0 || to >= arr.length) return;
+  var tmp = arr[idx]; arr[idx] = arr[to]; arr[to] = tmp;
+  saveState();
+  renderMain();
+}
+
+function deleteBook(idx){
+  var cat = state.data.categories[state.activeCatIdx];
+  var book = cat.items[idx];
+  if (!book) return;
+  if (!confirm('Xoá truyện "' + (book.title || '?') + '"?')) return;
+  cat.items.splice(idx, 1);
+  saveState();
+  renderMain();
+  renderSidebar();
+  toast('🗑 Đã xoá: ' + book.title, 'success');
+}
+
+/* ═══ Add Category ═══ */
+$('#btn-add-cat').addEventListener('click', function(){
+  var name = prompt('Tên thể loại mới:');
+  if (!name || !name.trim()) return;
+  state.data.categories.push({ name: name.trim(), items: [] });
+  state.activeCatIdx = state.data.categories.length - 1;
+  saveState();
+  renderSidebar();
+  renderMain();
+  toast('✅ Đã thêm thể loại: ' + name, 'success');
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   BOOK EDIT MODAL
+   ═══════════════════════════════════════════════════════════════ */
+function resetBookForm(){
+  $('#bm-field-title').value = '';
+  $('#bm-field-url').value = '';
+  $('#bm-field-cover').value = '';
+  $('#bm-field-author').value = '';
+  $('#bm-field-desc').value = '';
+  $('#bm-field-format').value = 'epub';
+  state.lastAutoUrl = '';
+  state.lastAutoCover = '';
+  updateCoverPreview();
+  $$('.form-row').forEach(function(el){ el.classList.remove('has-error'); });
+  $$('.form-error').forEach(function(el){ el.remove(); });
+}
+
+function fillBookForm(book){
+  $('#bm-field-title').value = book.title || '';
+  $('#bm-field-url').value = compactPath(book.url, book.format);
+  $('#bm-field-cover').value = compactPath(book.cover, 'img');
+  $('#bm-field-author').value = book.author || '';
+  $('#bm-field-desc').value = book.description || '';
+  $('#bm-field-format').value = book.format || 'epub';
+  state.lastAutoUrl = '';
+  state.lastAutoCover = '';
+  updateCoverPreview();
+}
+
+function updateCoverPreview(){
+  var preview = $('#bm-cover-preview');
+  var v = $('#bm-field-cover').value.trim();
+  if (!v){
+    preview.innerHTML = '<div class="cover-empty"><span class="big">📖</span>Chưa có ảnh</div>';
+    return;
+  }
+  var previewUrl = expandPath(v, 'img');
+  preview.innerHTML = '<img src="' + escapeHtml(previewUrl) + '" '
+    + 'onerror="this.parentNode.innerHTML=\'<div class=&quot;cover-empty&quot;>❌ Lỗi tải ảnh</div>\'">';
+}
+
+$('#bm-field-cover').addEventListener('input', updateCoverPreview);
+
+/* ⭐ Helper: sinh URL từ title + format */
+function buildAutoPaths(title, format){
+  var slug = slugify(title);
+  if (!slug) return null;
+  var f = String(format || 'epub').toLowerCase();
+  var extMap = { epub: '.epub', txt: '.txt', html: '.html', docx: '.docx', odt: '.odt', rtf: '.rtf' };
+  var ext = extMap[f] || ('.' + f);
+  return {
+    slug: slug,
+    url: f + '/' + slug + ext,
+    cover: 'img/' + slug + '.jpg'
+  };
+}
+
+var _autoFillTimer = null;
+function runAutoFill(force){
+  var title = $('#bm-field-title').value.trim();
+  if (!title) return;
+  var format = $('#bm-field-format').value;
+  var paths = buildAutoPaths(title, format);
+  if (!paths) return;
+
+  var urlField = $('#bm-field-url');
+  var coverField = $('#bm-field-cover');
+
+  if (force || !urlField.value.trim() || urlField.value === state.lastAutoUrl){
+    urlField.value = paths.url;
+    state.lastAutoUrl = paths.url;
+  }
+  if (force || !coverField.value.trim() || coverField.value === state.lastAutoCover){
+    coverField.value = paths.cover;
+    state.lastAutoCover = paths.cover;
+    updateCoverPreview();
+  }
+}
+
+$('#bm-field-title').addEventListener('input', function(){
+  clearTimeout(_autoFillTimer);
+  _autoFillTimer = setTimeout(function(){ runAutoFill(false); }, 400);
+});
+
+$('#bm-field-format').addEventListener('change', function(){
+  clearTimeout(_autoFillTimer);
+  _autoFillTimer = setTimeout(function(){ runAutoFill(false); }, 100);
+});
+
+/* ⭐ Auto-fill thủ công (đã gộp — bản cũ bị trùng listener) */
+$('#bm-autofill').addEventListener('click', function(){
+  var title = $('#bm-field-title').value.trim();
+  if (!title){ toast('⚠️ Nhập tên truyện trước', 'warn'); return; }
+  clearTimeout(_autoFillTimer);
+  runAutoFill(true);
+  var paths = buildAutoPaths(title, $('#bm-field-format').value);
+  toast('✨ Đã auto-fill: ' + (paths ? paths.url : ''), 'success');
+});
+
+$('#btn-add-book').addEventListener('click', function(){
+  if (state.activeCatIdx < 0){ toast('⚠️ Chưa chọn thể loại', 'warn'); return; }
+  resetBookForm();
+  state.editing = { catIdx: state.activeCatIdx, bookIdx: null };
+  $('#bm-title').textContent = '➕ Thêm truyện';
+  openModal('book-modal');
+  setTimeout(function(){ $('#bm-field-title').focus(); }, 80);
+});
+
+function editBook(idx){
+  if (state.activeCatIdx < 0) return;
+  var cat = state.data.categories[state.activeCatIdx];
+  var book = cat.items[idx];
+  if (!book) return;
+  resetBookForm();
+  fillBookForm(book);
+  state.editing = { catIdx: state.activeCatIdx, bookIdx: idx };
+  $('#bm-title').textContent = '✏️ Sửa truyện';
+  openModal('book-modal');
+}
+
+$('#bm-save').addEventListener('click', function(){
+  if (!state.editing){ closeModal('book-modal'); return; }
+  var cat = state.data.categories[state.editing.catIdx];
+  if (!cat){ closeModal('book-modal'); return; }
+
+  var title    = $('#bm-field-title').value.trim();
+  var urlRaw   = $('#bm-field-url').value.trim();
+  var coverRaw = $('#bm-field-cover').value.trim();
+  var author   = $('#bm-field-author').value.trim();
+  var desc     = $('#bm-field-desc').value.trim();
+  var format   = $('#bm-field-format').value;
+
+  var hasError = false;
+  $$('.form-row').forEach(function(el){ el.classList.remove('has-error'); });
+  $$('.form-error').forEach(function(el){ el.remove(); });
+
+  if (!title){
+    markError('#bm-field-title', 'Vui lòng nhập tên truyện');
+    hasError = true;
+  }
+  if (!urlRaw){
+    markError('#bm-field-url', 'Vui lòng nhập URL ebook');
+    hasError = true;
+  }
+  if (hasError) return;
+
+  var url   = compactPath(urlRaw, format);
+  var cover = compactPath(coverRaw, 'img');
+
+  var book = {
+    title: title, url: url, cover: cover,
+    author: author, description: desc, format: format
+  };
+
+  if (state.editing.bookIdx === null){
+    cat.items.push(book);
+    toast('✅ Đã thêm: ' + title, 'success', 2400);
+  } else {
+    cat.items[state.editing.bookIdx] = book;
+    toast('✅ Đã lưu: ' + title, 'success', 2400);
+  }
+
+  saveState();
+  renderMain();
+  renderSidebar();
+  closeModal('book-modal');
+});
+
+function markError(sel, msg){
+  var input = $(sel);
+  if (!input) return;
+  var row = input.closest('.form-row');
+  if (row) row.classList.add('has-error');
+  var err = document.createElement('div');
+  err.className = 'form-error';
+  err.textContent = msg;
+  if (row) row.appendChild(err);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EXPORT / IMPORT / SYNC
+   ═══════════════════════════════════════════════════════════════ */
+$('#btn-export').addEventListener('click', function(){
+  var json = JSON.stringify(state.data, null, 2);
+  var blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'listepub.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  toast('📤 Đã tải về: listepub.txt', 'success');
+});
+
+$('#btn-copy').addEventListener('click', async function(){
+  var json = JSON.stringify(state.data, null, 2);
+  try {
+    await navigator.clipboard.writeText(json);
+    toast('📋 Đã copy JSON vào clipboard', 'success');
+  } catch(e){
+    var ta = document.createElement('textarea');
+    ta.value = json;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); toast('📋 Đã copy JSON', 'success'); }
+    catch(e2){ toast('❌ Không copy được', 'error'); }
+    document.body.removeChild(ta);
+  }
+});
+
+$('#btn-reset').addEventListener('click', function(){
+  if (!confirm('Xoá toàn bộ dữ liệu và bắt đầu lại?\n\nHành động này không thể hoàn tác!')) return;
+  state.data = { version: 1, categories: [] };
+  state.activeCatIdx = -1;
+  saveState();
+  renderSidebar();
+  renderMain();
+  toast('🗑 Đã reset toàn bộ', 'success');
+});
+
+/* ⭐ Nút đồng bộ thủ công */
+var btnSync = $('#btn-sync');
+if (btnSync){
+  btnSync.addEventListener('click', async function(){
+    this.classList.add('loading');
+    try { await syncRemote(false); }
+    finally { this.classList.remove('loading'); }
+  });
+}
+
+$('#btn-import').addEventListener('click', function(){
+  $('#import-text').value = '';
+  openModal('import-modal');
+});
+
+$$('.import-tab').forEach(function(tab){
+  tab.addEventListener('click', function(){
+    var t = this.dataset.tab;
+    $$('.import-tab').forEach(function(x){ x.classList.toggle('active', x === tab); });
+    $$('.import-pane').forEach(function(p){ p.classList.toggle('active', p.dataset.pane === t); });
+  });
+});
+
+$('#import-dropzone').addEventListener('click', function(){ $('#import-file').click(); });
+$('#import-file').addEventListener('change', function(){
+  if (this.files[0]) readImportFile(this.files[0]);
+});
+['dragenter','dragover'].forEach(function(ev){
+  $('#import-dropzone').addEventListener(ev, function(e){
+    e.preventDefault();
+    this.classList.add('drag');
+  });
+});
+['dragleave','drop'].forEach(function(ev){
+  $('#import-dropzone').addEventListener(ev, function(e){
+    e.preventDefault();
+    this.classList.remove('drag');
+  });
+});
+$('#import-dropzone').addEventListener('drop', function(e){
+  if (e.dataTransfer.files[0]) readImportFile(e.dataTransfer.files[0]);
+});
+
+function readImportFile(file){
+  var r = new FileReader();
+  r.onload = function(){
+    $('#import-text').value = r.result;
+    $$('.import-tab').forEach(function(x){ x.classList.toggle('active', x.dataset.tab === 'paste'); });
+    $$('.import-pane').forEach(function(p){ p.classList.toggle('active', p.dataset.pane === 'paste'); });
+    toast('📁 Đã đọc file: ' + file.name, 'success');
+  };
+  r.readAsText(file, 'utf-8');
+}
+
+/* ⭐ Import giờ dùng merge thông minh — luôn GỘP, không ghi đè */
+$('#import-confirm').addEventListener('click', function(){
+  var txt = $('#import-text').value.trim();
+  if (!txt){ toast('⚠️ Chưa có dữ liệu', 'warn'); return; }
+  try {
+    var parsed = JSON.parse(txt);
+    if (!parsed || !Array.isArray(parsed.categories)){
+      throw new Error('Thiếu trường "categories"');
+    }
+    var m = mergeData(parsed, state.data);
+    state.data = m.data;
+    if (state.activeCatIdx < 0 && state.data.categories.length) state.activeCatIdx = 0;
+    saveState();
+    renderSidebar();
+    renderMain();
+    closeModal('import-modal');
+    if (m.added.cats || m.added.items){
+      toast('📥 Đã gộp: +' + m.added.items + ' truyện, +' + m.added.cats + ' thể loại', 'success', 3200);
+    } else {
+      toast('✓ Không có gì mới (tất cả đã tồn tại)', 'info', 2400);
+    }
+  } catch(e){
+    toast('❌ JSON không hợp lệ: ' + e.message, 'error', 4000);
+  }
+});
+
+/* ═══ Keyboard ═══ */
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape'){
+    $$('.modal.open').forEach(function(m){ m.classList.remove('open'); });
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 's'){
+    e.preventDefault();
+    if ($('#book-modal').classList.contains('open')) $('#bm-save').click();
+  }
+});
+
+/* ═══ Boot ═══ */
+async function boot(){
+  var loaded = loadState();
+  if (!loaded){
+    state.data = {
+      version: 1,
+      categories: [
+        {
+          name: 'Tiên Hiệp',
+          items: [
+            {
+              title: 'Bàn Long',
+              url: 'epub/banlong.epub',
+              cover: 'img/banlong.jpg',
+              author: 'Ngã Cật Tây Hồng Thị',
+              description: 'Truyện huyền huyễn tiêu biểu một thời. Nơi ma pháp và đấu khí tung hoành...',
+              format: 'epub'
+            }
+          ]
+        }
+      ]
+    };
+    state.activeCatIdx = 0;
+    saveState();
+  }
+  renderSidebar();
+  renderMain();
+  console.log('[EPUB Editor] ready | BASE = ' + DEFAULT_RAW_BASE);
+
+  /* ⭐ Tự động kéo dữ liệu mới từ remote, gộp vào localStorage */
+  toast('🔄 Đang tải dữ liệu mới...', 'info', 1500);
+  await syncRemote(true);
+}
+boot();
+
+})();
+</script>
+</body>
+</html>
