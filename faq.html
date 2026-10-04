@@ -1,0 +1,810 @@
+
+---
+
+# 📄 faq.html
+
+```html
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>❓ FAQ — EPUB List Editor 1.1</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:#0a0a0f;color:#e0e0e8;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  font-size:15px;line-height:1.7;
+  min-height:100vh;
+}
+a{color:#a8d5ff;text-decoration:none;}
+a:hover{text-decoration:underline;color:#d9b8ff;}
+::selection{background:rgba(168,85,247,.35);}
+::-webkit-scrollbar{width:10px;}
+::-webkit-scrollbar-track{background:#0f0f16;}
+::-webkit-scrollbar-thumb{background:#2a2a3a;border-radius:5px;}
+::-webkit-scrollbar-thumb:hover{background:#3a3a4a;}
+
+.wrap{max-width:900px;margin:0 auto;padding:0 20px 80px;}
+
+/* ═══ Header ═══ */
+header{
+  background:linear-gradient(160deg,#1a0f2e 0%,#0f0f16 60%);
+  border-bottom:1px solid rgba(168,85,247,.25);
+  padding:60px 20px 50px;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+header::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(168,85,247,.18),transparent 70%);
+  pointer-events:none;
+}
+header .logo{
+  font-size:64px;line-height:1;margin-bottom:14px;
+  filter:drop-shadow(0 8px 24px rgba(168,85,247,.5));
+}
+header h1{
+  font-size:36px;font-weight:800;
+  background:linear-gradient(135deg,#d9b8ff,#4dabf7);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+  letter-spacing:-.5px;margin-bottom:10px;
+}
+header p{color:#888;font-size:15px;max-width:600px;margin:0 auto;}
+header .badge{
+  display:inline-block;margin-top:16px;
+  padding:5px 14px;border-radius:20px;
+  background:rgba(168,85,247,.15);
+  border:1px solid rgba(168,85,247,.4);
+  color:#d9b8ff;font-size:12px;font-weight:700;
+  letter-spacing:.5px;
+}
+
+/* ═══ Search + TOC ═══ */
+.search-bar{
+  position:sticky;top:0;z-index:50;
+  background:rgba(10,10,15,.92);
+  backdrop-filter:blur(10px);
+  padding:14px 20px;
+  border-bottom:1px solid #1a1a24;
+  margin:0 -20px 30px;
+}
+.search-bar input{
+  width:100%;max-width:700px;margin:0 auto;display:block;
+  padding:12px 18px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:10px;
+  color:#fff;font-size:14px;outline:none;
+  transition:border-color .15s,background .15s;
+  font-family:inherit;
+}
+.search-bar input:focus{border-color:#a855f7;background:rgba(168,85,247,.08);}
+.search-bar input::placeholder{color:#555;}
+
+.toc{
+  background:rgba(168,85,247,.05);
+  border:1px solid rgba(168,85,247,.2);
+  border-radius:12px;
+  padding:18px 22px;
+  margin-bottom:40px;
+}
+.toc h3{
+  font-size:12px;font-weight:800;
+  text-transform:uppercase;letter-spacing:1.5px;
+  color:#a8d5ff;margin-bottom:12px;
+}
+.toc ol{
+  list-style:none;counter-reset:toc;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:6px 24px;
+}
+.toc li{counter-increment:toc;}
+.toc li a{
+  display:block;padding:4px 0;font-size:14px;color:#c8c8d0;
+  transition:color .15s;
+}
+.toc li a::before{
+  content:counter(toc) '. ';
+  color:#a855f7;font-weight:700;margin-right:4px;
+}
+.toc li a:hover{color:#d9b8ff;}
+
+/* ═══ FAQ item ═══ */
+.faq-item{
+  background:linear-gradient(135deg,rgba(255,255,255,.03),rgba(255,255,255,.01));
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;
+  margin-bottom:12px;
+  overflow:hidden;
+  transition:border-color .2s,background .2s;
+}
+.faq-item:hover{border-color:rgba(168,85,247,.35);}
+.faq-item.open{
+  border-color:rgba(168,85,247,.5);
+  background:linear-gradient(135deg,rgba(168,85,247,.08),rgba(168,85,247,.02));
+}
+.faq-q{
+  display:flex;align-items:flex-start;gap:14px;
+  padding:18px 22px;
+  cursor:pointer;user-select:none;
+  font-size:15.5px;font-weight:700;color:#fff;
+  transition:color .15s;
+  list-style:none;
+}
+.faq-q::marker{content:'';}
+.faq-q::-webkit-details-marker{display:none;}
+.faq-q .icon{
+  flex-shrink:0;width:26px;height:26px;
+  border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(168,85,247,.2);
+  color:#d9b8ff;
+  font-size:13px;font-weight:800;
+  transition:transform .25s,background .2s;
+}
+.faq-item[open] .faq-q .icon,
+.faq-item.open .faq-q .icon{
+  transform:rotate(45deg);
+  background:#a855f7;color:#fff;
+}
+.faq-q .q-text{flex:1;padding-top:1px;}
+.faq-a{
+  padding:0 22px 20px 62px;
+  color:#c8c8d0;font-size:14.5px;line-height:1.75;
+  animation:fadeDown .25s ease;
+}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}
+.faq-a p{margin-bottom:10px;}
+.faq-a p:last-child{margin-bottom:0;}
+.faq-a ul,.faq-a ol{margin:8px 0 12px 22px;}
+.faq-a li{margin-bottom:5px;}
+.faq-a code{
+  background:rgba(77,171,247,.14);
+  color:#a8d5ff;
+  padding:2px 7px;border-radius:4px;
+  font-family:ui-monospace,"Courier New",monospace;
+  font-size:13px;
+}
+.faq-a pre{
+  background:rgba(0,0,0,.5);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:8px;
+  padding:14px 16px;
+  overflow-x:auto;
+  margin:10px 0;
+  font-family:ui-monospace,"Courier New",monospace;
+  font-size:12.5px;line-height:1.6;color:#d9b8ff;
+}
+.faq-a strong{color:#fff;}
+.faq-a em{color:#d9b8ff;font-style:normal;font-weight:600;}
+
+.callout{
+  border-left:3px solid #4dabf7;
+  background:rgba(77,171,247,.08);
+  padding:12px 16px;
+  border-radius:0 8px 8px 0;
+  margin:12px 0;
+  font-size:14px;
+}
+.callout.warn{border-left-color:#ffd43b;background:rgba(255,212,59,.08);}
+.callout.danger{border-left-color:#ff6b6b;background:rgba(255,107,107,.08);}
+.callout.success{border-left-color:#4caf50;background:rgba(76,175,80,.08);}
+.callout strong{color:#fff;}
+
+.tag{
+  display:inline-block;
+  padding:2px 8px;border-radius:5px;
+  font-size:11px;font-weight:700;letter-spacing:.5px;
+  text-transform:uppercase;
+  margin-right:6px;
+}
+.tag.hot{background:rgba(255,107,107,.2);color:#ff8787;}
+.tag.new{background:rgba(76,175,80,.2);color:#69db7c;}
+.tag.tip{background:rgba(255,212,59,.2);color:#ffd43b;}
+.tag.sync{background:rgba(168,85,247,.2);color:#d9b8ff;}
+
+/* ═══ Section header ═══ */
+.section-h{
+  font-size:12px;font-weight:800;
+  text-transform:uppercase;letter-spacing:1.5px;
+  color:#a8d5ff;
+  margin:40px 0 16px;
+  padding-bottom:8px;
+  border-bottom:1px solid rgba(168,85,247,.2);
+}
+.section-h:first-of-type{margin-top:0;}
+
+/* ═══ Footer ═══ */
+footer{
+  text-align:center;
+  padding:40px 20px 30px;
+  color:#555;font-size:13px;
+  border-top:1px solid #1a1a24;
+  margin-top:60px;
+}
+footer a{color:#a855f7;}
+footer .heart{color:#ff8787;}
+
+/* ═══ No result ═══ */
+.no-result{
+  text-align:center;padding:50px 20px;
+  color:#555;font-size:14px;
+  display:none;
+}
+.no-result.show{display:block;}
+.no-result .big{font-size:42px;margin-bottom:10px;opacity:.4;}
+
+/* ═══ Back to top ═══ */
+#totop{
+  position:fixed;bottom:24px;right:24px;
+  width:46px;height:46px;border-radius:50%;
+  background:linear-gradient(135deg,#a855f7,#4dabf7);
+  color:#fff;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;
+  box-shadow:0 8px 24px rgba(168,85,247,.5);
+  opacity:0;pointer-events:none;
+  transition:opacity .25s,transform .2s;
+  z-index:100;
+}
+#totop.show{opacity:1;pointer-events:auto;}
+#totop:hover{transform:translateY(-3px);}
+
+@media(max-width:640px){
+  header{padding:40px 16px 34px;}
+  header h1{font-size:24px;}
+  header .logo{font-size:48px;}
+  .wrap{padding:0 14px 60px;}
+  .faq-q{font-size:14.5px;padding:15px 16px;gap:10px;}
+  .faq-a{padding:0 16px 18px 52px;font-size:14px;}
+  .search-bar{padding:12px 14px;margin:0 -14px 24px;}
+  .toc ol{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">❓</div>
+  <h1>Frequently Asked Questions</h1>
+  <p>Giải đáp thắc mắc về <strong>EPUB List Editor 1.1</strong> — quản lý danh sách truyện, đồng bộ, xuất/nhập dữ liệu.</p>
+  <span class="badge">v1.1 · Cập nhật 2024</span>
+</header>
+
+<div class="wrap">
+
+  <div class="search-bar">
+    <input type="text" id="search" placeholder="🔍 Tìm câu hỏi... (VD: localStorage, đồng bộ, xuất file)">
+  </div>
+
+  <nav class="toc">
+    <h3>📑 Mục lục nhanh</h3>
+    <ol>
+      <li><a href="#q1">Dữ liệu lưu ở đâu?</a></li>
+      <li><a href="#q2">Mở máy khác có thấy dữ liệu không?</a></li>
+      <li><a href="#q3">Reset có hoàn tác được không?</a></li>
+      <li><a href="#q4">Đồng bộ tự động hoạt động thế nào?</a></li>
+      <li><a href="#q5">Đồng bộ có ghi đè dữ liệu của tôi?</a></li>
+      <li><a href="#q6">Làm sao chia sẻ danh sách cho bạn bè?</a></li>
+      <li><a href="#q7">Nhập file từ người khác có ghi đè không?</a></li>
+      <li><a href="#q8">Tự host dữ liệu để chia sẻ?</a></li>
+      <li><a href="#q9">Auto-fill URL hoạt động ra sao?</a></li>
+      <li><a href="#q10">Đổi server đồng bộ ở đâu?</a></li>
+      <li><a href="#q11">Tại sao ảnh bìa không hiện?</a></li>
+      <li><a href="#q12">Tên thể loại bị trùng thì sao?</a></li>
+      <li><a href="#q13">Truyện trùng tên nhưng khác file?</a></li>
+      <li><a href="#q14">Có giới hạn số lượng truyện không?</a></li>
+      <li><a href="#q15">Tôi mở bằng file:// có dùng được không?</a></li>
+      <li><a href="#q16">Server remote lỗi thì sao?</a></li>
+      <li><a href="#q17">Làm sao backup dữ liệu?</a></li>
+      <li><a href="#q18">Sao chép sang máy mới?</a></li>
+      <li><a href="#q19">Sửa JSON bằng tay được không?</a></li>
+      <li><a href="#q20">Có phím tắt nào không?</a></li>
+    </ol>
+  </nav>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <h2 class="section-h">💾 Lưu trữ & dữ liệu</h2>
+
+  <details class="faq-item" id="q1">
+    <summary class="faq-q">
+      <span class="icon">+</span>
+      <span class="q-text">Dữ liệu của tôi được lưu ở đâu?</span>
+    </summary>
+    <div class="faq-a">
+      <p>Toàn bộ dữ liệu (thể loại, truyện) được lưu trong <strong>localStorage</strong> của trình duyệt bạn đang dùng, dưới 2 key:</p>
+      <ul>
+        <li><code>epub_editor_data_v1</code> — dữ liệu chính (JSON)</li>
+        <li><code>epub_editor_active_cat</code> — chỉ số thể loại đang chọn</li>
+      </ul>
+      <p>Nghĩa là dữ liệu <em>nằm trên máy bạn</em>, không gửi lên server nào cả. Mọi thao tác Thêm/Sửa/Xoá đều được lưu ngay lập tức (không cần bấm Save toàn cục).</p>
+    </div>
+  </details>
+
+  <details class="faq-item" id="q2">
+    <summary class="faq-q">
+      <span class="icon">+</span>
+      <span class="q-text">Tôi mở trên máy khác / trình duyệt khác, có thấy dữ liệu không?</span>
+    </summary>
+    <div class="faq-a">
+      <p><strong>Không.</strong> localStorage là <em>per-browser, per-device</em>. Mở trên Chrome máy A ≠ Chrome máy B ≠ Firefox máy A.</p>
+      <p>Để có dữ liệu trên máy mới, bạn cần:</p>
+      <ul>
+        <li>Bấm <strong>🔄 Đồng bộ</strong> để kéo từ server remote (nếu server có sẵn dữ liệu bạn muốn).</li>
+        <li>Hoặc <strong>📥 Nhập</strong> file JSON bạn đã xuất trước đó.</li>
+      </ul>
+      <div class="callout tip">
+        <strong>💡 Mẹo:</strong> Trước khi đổi máy, bấm <strong>📤 Xuất file</strong> để backup. Sang máy mới, <strong>📥 Nhập</strong> lại.
+      </div>
+    </div>
+  </details>
+
+  <details class="faq-item" id="q3">
+    <summary class="faq-q">
+      <span class="icon">+</span>
+      <span class="q-text">Bấm <strong>🗑 Reset</strong> có hoàn tác được không?</span>
+    </summary>
+    <div class="faq-a">
+      <div class="callout danger">
+        <strong>⚠️ Không.</strong> Reset xoá sạch toàn bộ dữ liệu trong localStorage, <em>không thể khôi phục</em>.
+      </div>
+      <p>Trước khi Reset, <strong>bắt buộc</strong> nên:</p>
+      <ol>
+        <li>Bấm <strong>📤 Xuất file</strong> → lưu <code>listepub.txt</code> về máy.</li>
+        <li>Hoặc <strong>📋 Copy</strong> → paste vào Notepad/Google Docs.</li>
+      </ol>
+      <p>Sau khi Reset xong, bạn có thể <strong>📥 Nhập</strong> lại file cũ nếu đổi ý.</p>
+    </div>
+  </details>
+
+  <details class="faq-item" id="q17">
+    <summary class="faq-q">
+      <span class="icon">+</span>
+      <span class="q-text">Làm sao để backup dữ liệu định kỳ?</span>
+    </summary>
+    <div class="faq-a">
+      <p>Có 2 cách:</p>
+      <ul>
+        <li><strong>Thủ công:</strong> Định kỳ bấm 📤 Xuất file → đặt tên có ngày tháng (VD: <code>listepub-2024-10-04.txt</code>) → lưu vào Google Drive/Dropbox.</li>
+        <li><strong>Tự động:</strong> Không có tích hợp sẵn, nhưng bạn có thể dùng extension như <em>LocalStorage Manager</em> để export toàn bộ localStorage định kỳ.</li>
+      </ul>
+      <div class="callout">
+        <strong>Lưu ý:</strong> Nếu bạn dùng chế độ ẩn danh (Incognito), localStorage sẽ bị xoá khi đóng tab. <strong>Không dùng Incognito</strong> cho công việc thật.
+      </div>
+    </div>
+  </details>
+
+  <details class="faq-item" id="q18">
+    <summary class="faq-q">
+      <span class="icon">+</span>
+      <span class="q-text">Tôi muốn sao chép toàn bộ dữ liệu sang máy mới. Làm sao?</span>
+    </summary>
+    <div class="faq-a">
+      <p>3 bước đơn giản:</p>
+      <ol>
+        <li><strong>Máy cũ:</strong> Bấm <strong>📤 Xuất file</strong> → nhận <code>listepub.txt</code>.</li>
+        <li>Chuyển file qua máy mới (USB, email, cloud, Zalo…).</li>
+        <li><strong>Máy mới:</strong> Mở editor → bấm <strong>📥 Nhập</strong> → tab 📁 Chọn file → kéo thả file → 📥 Nhập.</li>
+      </ol>
+      <p>Xong. Toàn bộ thể loại và truyện sẽ được gộp vào (không trùng).</p>
+    </div>
+  </details>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <h2 class="section-h">🔄 Đồng bộ</h2>
+
+  <details class="faq-item" id="q4">
+    <summary class="faq-q">
+      <span class="icon">+</span>
+      <span class="q-text">Đồng bộ tự động hoạt động như thế nào? <span class="tag sync">SYNC</span></span>
+    </summary>
+    <div class="faq-a">
+      <p>Mỗi lần bạn <strong>mở trang</strong>, hệ thống tự động:</p>
+      <ol>
+        <li>Fetch JSON từ server remote (URL cấu hình trong <code>REMOTE_DATA_URL</code>).</li>
+        <li>So sánh với dữ liệu trong localStorage của bạn.</li>
+        <li><strong>Gộp thông minh:</strong> chỉ thêm cái mới, không xoá cái cũ, không ghi đè.</li>
+        <li>Hiện toast báo cáo: <code>+N truyện, +M thể loại</code> nếu có gì mới.</li>
+      </ol>
+      <p>Ngoài ra, bạn có thể bấm nút <strong>🔄 Đồng bộ</strong> trên header <em>bất kỳ lúc nào</em> để force refresh (thêm <code>?_t=timestamp</code> để phá cache).</p>
+    </div>
+  </details>
+
+  <details class="faq-item" id="q5">
+    <summary class="faq-q">
+      <span class="icon">+</span>
+      <span class="q-text">Đồng bộ có ghi đè / xoá dữ liệu tôi đã tự thêm không?</span>
+    </summary>
+    <div class="faq-a">
+      <div class="callout success">
+        <strong>✅ Không.</strong> Đồng bộ chỉ <em>thêm</em>, không bao giờ xoá hay ghi đè.
+      </div>
+      <p>Cụ thể:</p>
+      <ul>
+        <li><strong>Thể loại trùng tên</strong> (không phân biệt hoa/thường) → gộp truyện vào thể loại cũ.</li>
+        <li><strong>Thể loại chưa có</strong> → thêm mới.</li>
+        <li><strong>Truyện trùng URL</strong> hoặc <strong>trùng tên</strong> → bỏ qua, giữ bản cũ.</li>
+        <li>Nếu bản cũ <em>thiếu</em> <code>author</code>/<code>description</code>/<code>cover</code> mà bản mới <em>có</em> → tự bổ sung.</li>
+      </ul>
+      <p>Truyện bạn tự thêm mà server không có → vẫn giữ nguyên.</p>
+    </div>
+  </details>
+
+  <details class="faq-item" id="q10">
+    <summary class="faq-q">
+      <span class="icon">+</span>
+      <span class="q-text">Tôi muốn đổi server đồng bộ sang server riêng. Làm sao?</span>
+    </summary>
+    <div class="faq-a">
+      <p>Mở file <code>index.html</code> bằng Notepad/VS Code, tìm biến <code>REMOTE_DATA_URL</code> trong block CONFIG:</p>
+      <pre>var REMOTE_DATA_URL = 'https://your-server.com/path/listepub.txt';</pre>
+      <p>Thay bằng URL của bạn, lưu file, xong.</p>
+      <div class="callout tip">
+        <strong>💡 Yêu cầu:</strong> URL phải trả về JSON đúng schema (xem mục <em>Cấu trúc dữ liệu</em> trong README). Server cần bật CORS cho domain của bạn.
+      </div>
+    </div>
+  </details>
+
+  <details class="faq-item" id="q16">
+    <summary class="faq-q">
+      <span class="icon">+</span>
+      <span class="q-text">Server remote bị lỗi / sập / không có mạng thì sao?</span>
+    </summary>
+    <div class="faq-a">
+      <p>Không sao cả. Editor vẫn hoạt động bình thường với dữ liệu trong localStorage. Chỉ có tính năng đồng bộ là tạm ngưng.</p>
+      <p>Khi mở trang, nếu fetch lỗi sẽ có cảnh báo trong Console:</p>
+      <pre>[Editor] Remote fetch fail: ...</pre>
+      <p>Nhưng giao diện không văng, không ảnh hưởng dữ liệu. Khi server hoạt động lại, bấm 🔄 Đồng bộ để thử lại.</p>
+    </div>
+  </details>
+
+  <details class="faq-item" id="q8">
+    <summary class="faq-q">
+      <span class="icon">+</span>
+      <span class="q-text">Tôi muốn tự host dữ liệu để chia sẻ cho nhiều người? <span class="tag hot">HOT</span></span>
+    </summary>
+    <div class="faq-a">
+      <p>Các bước:</p>
+      <ol>
+        <li><strong>Chuẩn bị file JSON</strong> theo đúng schema (xem README mục <em>Cấu trúc dữ liệu JSON</em>).</li>
+        <li><strong>Upload file</strong> lên chỗ public:
+          <ul>
+            <li><strong>GitHub raw</strong> — push file vào repo, lấy URL <code>raw.githubusercontent.com/...</code></li>
+            <li><strong>Cloudflare Worker / R2</strong> — tạo worker trả JSON.</li>
+            <li><strong>Netlify/Vercel</strong> — đặt file trong thư mục <code>public/</code>.</li>
+            <li><strong>Bất kỳ CDN nào</strong> có CORS mở.</li>
+          </ul>
+        </li>
+        <li><strong>Sửa</strong> <code>REMOTE_DATA_URL</code> trong <code>index.html</code> thành URL của bạn.</li>
+        <li><strong>Deploy</strong> lại editor.</li>
+      </ol>
+      <p>Ai mở editor cũng sẽ tự đồng bộ từ server bạn.</p>
+      <div class="callout warn">
+        <strong>⚠️ Nhớ bật CORS:</strong> Nếu server không cho phép domain của editor, fetch sẽ fail. Thêm header:
+        <pre>Access-Control-Allow-Origin: *</pre>
+      </div>
+    </div>
+  </details>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <h2 class="section-h">📤📥 Xuất & Nhập</h2>
+
+  <details class="faq-item" id="q6">
+    <summary class="faq-q">
+      <span class="icon">+</span>
+      <span class="q-text">Làm sao chia sẻ danh sách truyện cho bạn bè? <span class="tag hot">HOT</span></span>
+    </summary>
+    <div class="faq-a">
+      <p>Có 2 cách nhanh:</p>
+      <h4 style="color:#a8d5ff;font-size:13px;margin:12px 0 6px;text-transform:uppercase;letter-spacing:1px;">Cách 1 — Xuất file (khuyến nghị)</h4>
+      <ol>
+        <li>Bấm <strong>📤 Xuất file</strong> → tải về <code>listepub.txt</code>.</li>
+        <li>Gửi file qua Zalo / Messenger / Email / Google Drive.</li>
+        <li>Bạn bè mở editor → <strong>📥 Nhập</strong> → tab 📁 Chọn file → kéo thả file → OK.</li>
+      </ol>
+
+      <h4 style="color:#a8d5ff;font-size:13px;margin:14px 0 6px;text-transform:uppercase;letter-spacing:1px;">Cách 2 — Copy clipboard (nhanh gọn)</h4>
+      <ol>
+        <li>Bấm <strong>📋 Copy</strong> → JSON vào clipboard.</li>
+        <li>Paste vào chat / email / ghi chú.</li>
+        <li>Bạn bè copy đoạn đó → mở editor → <strong>📥 Nhập</strong> → tab 📋 Dán JSON → paste → OK.</li>
+      </ol>
+
+      <div class="callout tip">
+        <strong>💡 Khi nào dùng cách nào?</strong> File thì gọn gàng, chuyên nghiệp, phù hợp gửi qua email. Clipboard thì nhanh, tiện chat, nhưng JSON dài có thể bị cắt khi gửi qua một số app.
+      </div>
+    </div>
+  </details>
+
+  <details class="faq-item" id="q7">
+    <summary class="faq-q">
+      <span class="icon">+</span>
+      <span class="q-text">Tôi nhập file từ bạn, có ghi đè dữ liệu của tôi không?</span>
+    </summary>
+    <div class="faq-a">
+      <div class="callout success">
+        <strong>✅ Không.</strong> Từ bản 1.1, <em>nhập luôn luôn GỘP</em>, không bao giờ ghi đè.
+      </div>
+      <p>Quy tắc gộp:</p>
+      <ul>
+        <li>Thể loại trùng tên (không phân biệt hoa/thường) → gộp truyện vào.</li>
+        <li>Thể loại mới → thêm vào.</li>
+        <li>Truyện trùng URL <em>hoặc</em> trùng tên (case-insensitive) → bỏ qua, giữ bản cũ.</li>
+        <li>Truyện cũ thiếu metadata → bổ sung từ bản mới.</li>
+      </ul>
+      <p>Kết quả sẽ hiện toast:</p>
+      <ul>
+        <li>✅ <code>📥 Đã gộp: +N truyện, +M thể loại</code> — có dữ liệu mới.</li>
+        <li>✓ <code>Không có gì mới (tất cả đã tồn tại)</code> — trùng hết.</li>
+      </ul>
+
+      <h4 style="color:#ff8787;font-size:13px;margin:14px 0 6px;text-transform:uppercase;letter-spacing:1px;">Muốn GHI ĐÈ hoàn toàn?</h4>
+      <ol>
+        <li>Bấm <strong>🗑 Reset</strong> trước để xoá sạch.</li>
+        <li>Rồi mới <strong>📥 Nhập</strong> file mới.</li>
+      </ol>
+    </div>
+  </details>
+
+  <details class="faq-item" id="q19">
+    <summary class="faq-q">
+      <span class="icon">+</span>
+      <span class="q-text">Tôi có thể sửa JSON bằng tay trước khi nhập không?</span>
+    </summary>
+    <div class="faq-a">
+      <p>Được. Đây là cách tốt để chỉnh số lượng lớn:</p>
+      <ol>
+        <li>📤 Xuất file → mở bằng Notepad / VS Code.</li>
+        <li>Sửa trực tiếp (thêm thể loại, sửa tên, thêm truyện…).</li>
+        <li>Lưu file → 📥 Nhập lại (nhớ Reset trước nếu muốn thay thế hoàn toàn).</li>
+      </ol>
+      <div class="callout warn">
+        <strong>⚠️ Lưu ý:</strong> Phải giữ đúng cấu trúc JSON (dấu phẩy, ngoặc kép…). Sai 1 dấu là hỏng cả file. Nên dùng editor có syntax highlight và validate JSON.
+      </div>
+    </div>
+  </details>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <h2 class="section-h">🛠 Nhập liệu & Đường dẫn</h2>
+
+  <details class="faq-item" id="q9">
+    <summary class="faq-q">
+      <span class="icon">+</span>
+      <span class="q-text">Auto-fill URL hoạt động ra sao?</span>
+    </summary>
+    <div class="faq-a">
+      <p>Hệ thống <strong>slug hoá</strong> tên truyện (bỏ dấu, viết thường, bỏ ký tự đặc biệt) rồi ghép vào:</p>
+      <pre>epub/&lt;slug&gt;.epub   (ebook)
+img/&lt;slug&gt;.jpg    (cover)</pre>
+      <p>Ví dụ:</p>
+      <ul>
+        <li><code>Bàn Long</code> → <code>epub/banlong.epub</code> + <code>img/banlong.jpg</code></li>
+        <li><code>Thiên Long Bát Bộ</code> → <code>epub/thienlongbatbo.epub</code></li>
+        <li><code>Ỷ Thiên Đồ Long Ký</code> → <code>epub/ythiendolongky.epub</code></li>
+      </ul>
+      <p><strong>Cách kích hoạt:</strong></p>
+      <ul>
+        <li><strong>Tự động:</strong> Gõ tên → chờ 400ms → URL tự điền (nếu URL đang trống hoặc vẫn là auto-fill).</li>
+        <li><strong>Thủ công:</strong> Bấm <strong>✨ Auto-fill từ tên</strong> ở chân modal → ghi đè luôn.</li>
+      </ul>
+      <div class="callout">
+        <strong>Lưu ý:</strong> Nếu bạn tự tay sửa URL khác đi, hệ thống <em>sẽ không</em> ghi đè nữa. Muốn auto lại → bấm nút ✨.
+      </div>
+    </div>
+  </details>
+
+  <details class="faq-item" id="q11">
+    <summary class="faq-q">
+      <span class="icon">+</span>
+      <span class="q-text">Tại sao ảnh bìa không hiện?</span>
+    </summary>
+    <div class="faq-a">
+      <p>Kiểm tra theo thứ tự:</p>
+      <ol>
+        <li><strong>URL ảnh có đúng không?</strong> — Mở URL đó trong tab mới xem có ảnh không.</li>
+        <li><strong>Base URL có đúng không?</strong> — Xem biến <code>DEFAULT_RAW_BASE</code>. Nếu bạn dùng short path <code>img/abc.jpg</code>, hệ thống sẽ ghép <code>BASE + img/abc.jpg</code>.</li>
+        <li><strong>File có tồn tại trên server không?</strong> — Kiểm tra trong repo.</li>
+        <li><strong>CORS?</strong> — Nếu host ảnh không cho phép cross-origin, browser sẽ chặn.</li>
+        <li><strong>Tên file đúng chưa?</strong> — Slug hoá đôi khi làm sai. VD: <code>Ỷ Thiên</code> → <code>ythien</code> (không phải <code>y thien</code>).</li>
+      </ol>
+      <p>Nếu ảnh lỗi, hệ thống sẽ hiện chữ cái đầu tên truyện trên nền tối (fallback đẹp).</p>
+    </div>
+  </details>
+
+  <details class="faq-item" id="q14">
+    <summary class="faq-q">
+      <span class="icon">+</span>
+      <span class="q-text">Có giới hạn số lượng thể loại / truyện không?</span>
+    </summary>
+    <div class="faq-a">
+      <p>Trên lý thuyết: <strong>không</strong>. Nhưng có giới hạn thực tế:</p>
+      <ul>
+        <li><strong>localStorage</strong> giới hạn ~5-10 MB tuỳ trình duyệt. Mỗi truyện chiếm ~300 byte → <em>~15.000-30.000 truyện</em> là thoải mái.</li>
+        <li><strong>Render:</strong> Nếu một thể loại có hơn 500 truyện, cuộn có thể hơi lag (do render hết 1 lượt). Chia nhỏ thể loại sẽ mượt hơn.</li>
+      </ul>
+      <div class="callout tip">
+        <strong>💡 Khuyến nghị:</strong> Chia thể loại hợp lý (< 200 truyện/thể loại) để dễ quản lý và mượt UI.
+      </div>
+    </div>
+  </details>
+
+  <details class="faq-item" id="q12">
+    <summary class="faq-q">
+      <span class="icon">+</span>
+      <span class="q-text">Nếu tên thể loại bị trùng thì sao?</span>
+    </summary>
+    <div class="faq-a">
+      <p>Tuỳ trường hợp:</p>
+      <ul>
+        <li><strong>Trùng do đồng bộ/nhập:</strong> Hệ thống tự động gộp vào thể loại cũ (so sánh <em>case-insensitive</em>: <code>Kim Dung</code> = <code>kim dung</code> = <code>KIM DUNG</code>).</li>
+        <li><strong>Bạn tự thêm 2 thể loại cùng tên bằng nút <code>+ Thêm</code>:</strong> Hệ thống <em>không chặn</em> — bạn sẽ có 2 mục cùng tên. Cần xoá bằng tay (sửa JSON).</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="faq-item" id="q13">
+    <summary class="faq-q">
+      <span class="icon">+</span>
+      <span class="q-text">Truyện trùng tên nhưng khác file (URL) thì xử lý sao?</span>
+    </summary>
+    <div class="faq-a">
+      <p>Trong đồng bộ và nhập, quy tắc là: <strong>trùng URL HOẶC trùng tên → coi là cùng 1 truyện</strong>.</p>
+      <p>Nên nếu bạn có 2 truyện tên <code>Bàn Long</code> nhưng 1 file <code>banlong.epub</code>, 1 file <code>banlong_v2.epub</code> → hệ thống sẽ coi là trùng và <em>chỉ giữ bản đầu</em>.</p>
+      <div class="callout warn">
+        <strong>⚠️ Cách xử lý:</strong> Đặt tên khác nhau rõ ràng, VD: <code>Bàn Long (bản cũ)</code> và <code>Bàn Long (tái bản)</code>.
+      </div>
+    </div>
+  </details>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <h2 class="section-h">🌐 Kỹ thuật</h2>
+
+  <details class="faq-item" id="q15">
+    <summary class="faq-q">
+      <span class="icon">+</span>
+      <span class="q-text">Tôi mở file bằng <code>file://</code> (nhấp đôi file html) — có dùng được không?</span>
+    </summary>
+    <div class="faq-a">
+      <p><strong>Được</strong>, hầu hết tính năng hoạt động bình thường: thêm/sửa/xoá, lưu localStorage, xuất/nhập file.</p>
+      <p>Tuy nhiên, một số browser có thể chặn:</p>
+      <ul>
+        <li><strong>fetch remote</strong> (CORS không cho <code>file://</code>) → đồng bộ tự động có thể fail. Nút 🔄 vẫn bấm được nhưng có thể báo lỗi.</li>
+        <li><strong>Clipboard API</strong> (nút Copy) → có thể cần HTTPS.</li>
+      </ul>
+      <div class="callout tip">
+        <strong>💡 Khuyến nghị:</strong> Muốn dùng đầy đủ tính năng (đồng bộ, copy), host editor qua HTTPS. Miễn phí với GitHub Pages, Netlify, Vercel.
+      </div>
+    </div>
+  </details>
+
+  <details class="faq-item" id="q20">
+    <summary class="faq-q">
+      <span class="icon">+</span>
+      <span class="q-text">Có phím tắt nào không?</span>
+    </summary>
+    <div class="faq-a">
+      <table style="width:100%;border-collapse:collapse;margin-top:10px;font-size:14px;">
+        <tr style="border-bottom:1px solid #2a2a3a;">
+          <th style="text-align:left;padding:8px 0;color:#a8d5ff;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Phím</th>
+          <th style="text-align:left;padding:8px 0;color:#a8d5ff;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Tác dụng</th>
+        </tr>
+        <tr><td style="padding:8px 0;"><code>Ctrl + S</code> (hoặc <code>⌘ + S</code>)</td><td style="padding:8px 0;">Lưu form đang mở</td></tr>
+        <tr><td style="padding:8px 0;"><code>Esc</code></td><td style="padding:8px 0;">Đóng modal</td></tr>
+        <tr><td style="padding:8px 0;"><code>Enter</code></td><td style="padding:8px 0;">Xác nhận prompt (nhập tên thể loại)</td></tr>
+      </table>
+    </div>
+  </details>
+
+  <div class="no-result" id="no-result">
+    <div class="big">🔍</div>
+    Không tìm thấy câu hỏi nào khớp với "<span id="no-result-q"></span>"
+  </div>
+
+</div>
+
+<button id="totop" title="Lên đầu trang">▲</button>
+
+<footer>
+  Made with <span class="heart">♥</span> · <strong>EPUB List Editor 1.1</strong> · <a href="README.md">README</a>
+</footer>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ═══ Search filter ═══ */
+  var searchInput = document.getElementById('search');
+  var items = Array.from(document.querySelectorAll('.faq-item'));
+  var noResult = document.getElementById('no-result');
+  var noResultQ = document.getElementById('no-result-q');
+
+  // Lưu text gốc
+  items.forEach(function(it){
+    var q = it.querySelector('.faq-q .q-text').innerText.toLowerCase();
+    var a = it.querySelector('.faq-a').innerText.toLowerCase();
+    it.dataset.search = (q + ' ' + a);
+  });
+
+  searchInput.addEventListener('input', function(){
+    var q = this.value.trim().toLowerCase();
+    if (!q){
+      items.forEach(function(it){ it.style.display = ''; });
+      noResult.classList.remove('show');
+      return;
+    }
+    var shown = 0;
+    items.forEach(function(it){
+      if (it.dataset.search.indexOf(q) >= 0){
+        it.style.display = '';
+        shown++;
+      } else {
+        it.style.display = 'none';
+      }
+    });
+    if (shown === 0){
+      noResult.classList.add('show');
+      noResultQ.textContent = this.value;
+    } else {
+      noResult.classList.remove('show');
+    }
+  });
+
+  /* ═══ Accordion (chỉ mở 1 cái 1 lúc — tuỳ chọn) ═══ */
+  // Nếu muốn nhiều cái mở cùng lúc, xoá đoạn này.
+  // Hiện tại cho phép mở nhiều cái cùng lúc — comment lại nếu muốn single-mode.
+  // items.forEach(function(it){
+  //   it.addEventListener('toggle', function(){
+  //     if (this.open){
+  //       items.forEach(function(other){
+  //         if (other !== this) other.open = false;
+  //       }, this);
+  //     }
+  //   });
+  // });
+
+  /* ═══ Smooth scroll cho TOC ═══ */
+  document.querySelectorAll('.toc a[href^="#"]').forEach(function(a){
+    a.addEventListener('click', function(e){
+      var target = document.querySelector(this.getAttribute('href'));
+      if (target){
+        e.preventDefault();
+        target.open = true;
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(function(){
+          target.style.transition = 'box-shadow .4s';
+          target.style.boxShadow = '0 0 0 3px rgba(168,85,247,.5)';
+          setTimeout(function(){ target.style.boxShadow = ''; }, 800);
+        }, 300);
+      }
+    });
+  });
+
+  /* ═══ Back to top ═══ */
+  var totop = document.getElementById('totop');
+  window.addEventListener('scroll', function(){
+    if (window.scrollY > 400) totop.classList.add('show');
+    else totop.classList.remove('show');
+  });
+  totop.addEventListener('click', function(){
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  /* ═══ Hash tự mở FAQ tương ứng ═══ */
+  if (location.hash){
+    var t = document.querySelector(location.hash);
+    if (t && t.classList.contains('faq-item')){
+      t.open = true;
+      setTimeout(function(){
+        t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 200);
+    }
+  }
+})();
+</script>
+</body>
+</html>
